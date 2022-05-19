@@ -2,12 +2,10 @@
 #define SIMPLE_THREAD_POOL_H
 
 #include <atomic>
-#include <vector>
 #include <optional>
 #include <queue>
 #include <condition_variable>
 #include <thread>
-#include <unordered_map>
 
 // Ignore the details of this queue.
 // The point is just that it's a thread-safe FIFO queue.
