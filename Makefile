@@ -7,5 +7,6 @@ user: user.o
 speed_tests: speed_tests.o
 	$(CXX) -o $@ $< -pthread
 
-.phony: clean
+.PHONY: clean
+clean:
 	rm -f *.o user speed_tests
