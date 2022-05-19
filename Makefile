@@ -1,6 +1,6 @@
 
-CXXFLAGS=-Wall -Wextra
+CXXFLAGS=-Wall -Wextra -std=c++17
 
 user: user.o
-	$(CXX) -o $@ $<
+	$(CXX) -o $@ $< -pthread
 

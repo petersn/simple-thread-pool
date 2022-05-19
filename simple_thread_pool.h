@@ -32,8 +32,7 @@ struct ThreadSafeQueue {
 struct ThreadPool {
   struct Future {
     std::atomic<bool> is_completed = false;
-    std::atomic<bool> is_released = false;
-    std::atomic<bool> is_destroying = false;
+    std::atomic<bool> is_releasing = false;
     std::string inputs;
     std::string outputs;
   };
@@ -67,14 +66,13 @@ struct ThreadPool {
         break;
       command->f((const void*) command->future->inputs.data(), (void*) command->future->outputs.data());
       command->future->is_completed.store(true);
-      if (command->future->is_released)
-        self->destroy_future(command->future);
+      self->half_release(command->future);
     }
   }
 
-  void destroy_future(Future* future) {
-    bool was_destroying = future->is_destroying.exchange(true);
-    if (!was_destroying)
+  void half_release(Future* future) {
+    bool was_releasing = future->is_releasing.exchange(true);
+    if (was_releasing)
       delete future;
   }
 
@@ -106,9 +104,7 @@ struct ThreadPool {
 
   template<typename Outputs>
   void release(FutureView<Outputs> future_view) {
-    future_view.future_pointer->is_released.store(true);
-    if (future_view.future_pointer->is_completed)
-      destroy_future(future_view.future_pointer);
+    half_release(future_view.future_pointer);
   }
 };
 
