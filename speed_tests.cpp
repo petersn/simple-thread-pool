@@ -62,7 +62,7 @@ void thread_main(int thread_index) {
         sync_point.arrive_and_wait();
     }
 
-    // ===== Test 4: Uncontended volatile increment =====
+    // ===== Test 5: Uncontended volatile increment =====
     for (int i = 0; i < ITERS; i++) {
         sync_point.arrive_and_wait();
         if (thread_index == 0)
