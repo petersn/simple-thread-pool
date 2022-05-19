@@ -6,7 +6,7 @@
 #include <mutex>
 #include <barrier>
 
-constexpr int ITERS = 5;
+constexpr int ITERS = 3;
 constexpr int INCREMENTS = 1'000'000;
 constexpr int THREAD_COUNT = 32;
 
@@ -45,7 +45,24 @@ void thread_main(int thread_index) {
         sync_point.arrive_and_wait();
     }
 
-    // ===== Test 3: Mutex increment =====
+    // ===== Test 3: Contended increment =====
+    for (int i = 0; i < ITERS; i++) {
+        sync_point.arrive_and_wait();
+        for (int j = 0; j < INCREMENTS; j++)
+            atomic_value.fetch_add(1, std::memory_order_relaxed);
+        sync_point.arrive_and_wait();
+    }
+
+    // ===== Test 4: Uncontended increment =====
+    for (int i = 0; i < ITERS; i++) {
+        sync_point.arrive_and_wait();
+        if (thread_index == 0)
+            for (int j = 0; j < THREAD_COUNT * INCREMENTS; j++)
+                atomic_value.fetch_add(1, std::memory_order_relaxed);
+        sync_point.arrive_and_wait();
+    }
+
+    // ===== Test 5: Mutex increment =====
     for (int i = 0; i < ITERS; i++) {
         sync_point.arrive_and_wait();
         for (int j = 0; j < INCREMENTS; j++) {
@@ -55,7 +72,7 @@ void thread_main(int thread_index) {
         sync_point.arrive_and_wait();
     }
 
-    // ===== Test 4: Mutex increment =====
+    // ===== Test 6: Mutex increment =====
     for (int i = 0; i < ITERS; i++) {
         sync_point.arrive_and_wait();
         if (thread_index == 0) {
@@ -67,7 +84,7 @@ void thread_main(int thread_index) {
         sync_point.arrive_and_wait();
     }
 
-    // ===== Test 5: Contended volatile increment =====
+    // ===== Test 7: Contended volatile increment =====
     for (int i = 0; i < ITERS; i++) {
         sync_point.arrive_and_wait();
         for (int j = 0; j < INCREMENTS; j++)
@@ -75,7 +92,7 @@ void thread_main(int thread_index) {
         sync_point.arrive_and_wait();
     }
 
-    // ===== Test 6: Uncontended volatile increment =====
+    // ===== Test 8: Uncontended volatile increment =====
     for (int i = 0; i < ITERS; i++) {
         sync_point.arrive_and_wait();
         if (thread_index == 0)
@@ -98,6 +115,8 @@ int main() {
     for (const char* test_name : {
         "contended_atomic_increment",
         "uncontended_atomic_increment",
+        "contended_atomic_increment_relaxed",
+        "uncontended_atomic_increment_relaxed",
         "contended_mutex_increment",
         "uncontended_mutex_increment",
         "contended_volatile_increment",
